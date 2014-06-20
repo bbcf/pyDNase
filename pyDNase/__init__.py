@@ -19,7 +19,7 @@ __version__ = _version.__version__
 import os
 import numpy as np
 import pysam
-from clint.textui import progress, puts_err
+#from clint.textui import progress, puts_err
 
 
 def example_reads():
@@ -244,14 +244,15 @@ class GenomicIntervalSet(object):
             errorString = "Cannot load BED file: {0}".format(filename)
             raise IOError(errorString)
 
-        puts_err("Reading BED File...")
+#        puts_err("Reading BED File...")
 
         #This is done so that if a malformed BED record is detected, no intervals are loaded.
         records = []
         
-        intervalCount = max(enumerate(open(filename)))[0] + 1
-        for _ in progress.bar(range(intervalCount)):
-            line    = BEDfile.readline()
+#        intervalCount = max(enumerate(open(filename)))[0] + 1
+#        for _ in progress.bar(range(intervalCount)):
+#            line    = BEDfile.readline()
+        for line in BEDfile:
             #Skip lines in the bed files which are UCSC track metadata or comments
             if not self.__isBEDHeader(line):
                 records.append(self.__parseBEDString(line))
@@ -306,7 +307,7 @@ class GenomicIntervalSet(object):
         BEDSplit = BEDString.split()
 
         #Sanity check
-        if len(BEDSplit) not in [3,4,6]:
+        if len(BEDSplit) < 3:
             self.__malformedBEDline(BEDString)
 
         #Default if only Chrom Start End is detected
@@ -327,16 +328,17 @@ class GenomicIntervalSet(object):
             else:
                 self.__malformedBEDline(BEDString)
 
-        if len(BEDSplit) is 6:
+        if len(BEDSplit) > 4:
             label  = BEDSplit[3]
             try:
                 score = float(BEDSplit[4])
             except ValueError:
                 self.__malformedBEDline(BEDString)
-            if BEDSplit[5] in ["+", "-"]:
-                strand = BEDSplit[5]
-            else:
-                self.__malformedBEDline(BEDString)
+            if len(BEDSplit) > 5:
+                if BEDSplit[5] in ["+", "-"]:
+                    strand = BEDSplit[5]
+                else:
+                    self.__malformedBEDline(BEDString)
 
         return chrom,startbp,endbp,label,score,strand
 
