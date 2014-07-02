@@ -16,10 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse, os, math
-from clint.textui import progress,puts
+#from clint.textui import progress,puts
 import numpy as np
-import pyDNase
-from pyDNase import footprinting
+from pyDNase import footprinting, GenomicIntervalSet, BAMHandler
 
 __version__ = "0.1.1"
 
@@ -92,8 +91,8 @@ if not args.output_prefix:
     args.output_prefix = str(os.path.basename(args.reads)) + "." + str(os.path.basename(args.regions))
 
 #Load reads and regions
-regions = pyDNase.GenomicIntervalSet(args.regions)
-reads = pyDNase.BAMHandler(args.reads,caching=False)
+regions = GenomicIntervalSet(args.regions)
+reads = BAMHandler(args.reads,caching=False)
 
 #Create a directory for p-values and WIG output. This /should/ be OS independent
 os.makedirs(os.path.join(args.outputdir,"p value cutoffs"))
@@ -105,10 +104,11 @@ print >> wigout, "track type=wiggle_0"
 
 #Iterate in chromosome, basepair order
 orderedbychr = [item for sublist in sorted(regions.intervals.values()) for item in sorted(sublist, key=lambda peak: peak.startbp)]
-puts("Calculating footprints...")
-for each in progress.bar(orderedbychr):
+#puts("Calculating footprints...")
+#for each in progress.bar(orderedbychr):
     #Calculate footprint scores (1D or 2D)
     #TODO: put args here.
+for each in orderedbychr:
     if args.one_dimension:
         fp = footprinting.wellington1D(each, reads, shoulder_sizes = args.shoulder_sizes ,footprint_sizes = args.footprint_sizes, bonferroni = args.bonferroni)
     else:
