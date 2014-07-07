@@ -88,47 +88,53 @@ assert args.FDR_limit < 0, "FDR limit must be less than 0"
 assert len([f for f in os.listdir(args.outputdir) if f[0] != "."]) == 0, "output directory {0} is not empty!".format(args.outputdir)
 
 if not args.output_prefix:
-    args.output_prefix = str(os.path.basename(args.reads)) + "." + str(os.path.basename(args.regions))
-
+    args.output_prefix = "%s.%s" %(os.path.basename(args.reads),os.path.basename(args.regions))
+args.output_prefix += ".WellingtonFootprints"
+args.outputdir = os.path.relpath(args.outputdir)
 #Load reads and regions
 regions = GenomicIntervalSet(args.regions)
 reads = BAMHandler(args.reads,caching=False)
 
 #Create a directory for p-values and WIG output. This /should/ be OS independent
 os.makedirs(os.path.join(args.outputdir,"p value cutoffs"))
-wigout = open(os.path.relpath(args.outputdir) + "/" + args.output_prefix + ".WellingtonFootprints.wig","w")
-fdrout = open(os.path.relpath(args.outputdir) + "/" + args.output_prefix + ".WellingtonFootprints.FDR.{0}.bed".format(args.FDR_cutoff),"w")
+wigout = open(os.path.join(args.outputdir,args.output_prefix+".wig"),"w")
+fdrout = open(os.path.join(args.outputdir,args.output_prefix+".FDR.{0}.bed".format(args.FDR_cutoff)),"w")
 
 #Required for UCSC upload
 print >> wigout, "track type=wiggle_0"
 
 #Iterate in chromosome, basepair order
-orderedbychr = [item for sublist in sorted(regions.intervals.values()) for item in sorted(sublist, key=lambda peak: peak.startbp)]
+orderedbychr = [item for sublist in sorted(regions.intervals.values()) 
+                for item in sorted(sublist, key=lambda peak: peak.startbp)]
 #puts("Calculating footprints...")
 #for each in progress.bar(orderedbychr):
     #Calculate footprint scores (1D or 2D)
     #TODO: put args here.
 for each in orderedbychr:
     if args.one_dimension:
-        fp = footprinting.wellington1D(each, reads, shoulder_sizes=args.shoulder_sizes ,footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)
+        fp = footprinting.wellington1D(each, reads, shoulder_sizes=args.shoulder_sizes,
+                                       footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)
     else:
-        fp = footprinting.wellington(each, reads, shoulder_sizes=args.shoulder_sizes ,footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)
+        fp = footprinting.wellington(each, reads, shoulder_sizes=args.shoulder_sizes,
+                                     footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)
 
     #Write fpscores to WIG
-    print >> wigout, "fixedStep\tchrom=" + str(fp.interval.chromosome) + "\t start="+ str(fp.interval.startbp) +"\tstep=1"
+    print >> wigout, "fixedStep\tchrom="+str(fp.interval.chromosome)+"\tstart="+ str(fp.interval.startbp)+"\tstep=1"
     for i in fp.scores:
         print >> wigout, i
 
     #FDR footprints
-    fdr = percentile(np.concatenate([fp.calculate(reads,FDR=True, shoulder_sizes=args.shoulder_sizes ,footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)[0] for i in range(args.FDR_iterations)]).tolist(),args.FDR_cutoff)
-#    print fdr
+    fdr = percentile(np.concatenate([fp.calculate(reads, FDR=True, shoulder_sizes=args.shoulder_sizes,
+                                                  footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)[0]
+                                     for i in range(args.FDR_iterations)]).tolist(),args.FDR_cutoff)
+###    print fdr
     if fdr < args.FDR_limit:
         for footprint in fp.footprints(withCutoff=fdr,merge=not args.dont_merge_footprints):
             print >> fdrout, footprint
 
     #p-value cutoff footprints
     for fpscore in args.pv_cutoffs:
-        ofile = open(os.path.relpath(os.path.join(args.outputdir,"p value cutoffs")) + "/" + args.output_prefix + ".WellingtonFootprints.{0}.bed".format(fpscore),"a")
+        ofile = open(os.path.join(args.outputdir,"p value cutoffs",args.output_prefix+".{0}.bed".format(fpscore)),"a")
         for footprint in fp.footprints(withCutoff=fpscore):
             print >> ofile, footprint
         ofile.close()
