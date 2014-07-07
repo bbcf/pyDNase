@@ -110,9 +110,9 @@ orderedbychr = [item for sublist in sorted(regions.intervals.values()) for item 
     #TODO: put args here.
 for each in orderedbychr:
     if args.one_dimension:
-        fp = footprinting.wellington1D(each, reads, shoulder_sizes = args.shoulder_sizes ,footprint_sizes = args.footprint_sizes, bonferroni = args.bonferroni)
+        fp = footprinting.wellington1D(each, reads, shoulder_sizes=args.shoulder_sizes ,footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)
     else:
-        fp = footprinting.wellington(each, reads, shoulder_sizes = args.shoulder_sizes ,footprint_sizes = args.footprint_sizes, bonferroni = args.bonferroni)
+        fp = footprinting.wellington(each, reads, shoulder_sizes=args.shoulder_sizes ,footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)
 
     #Write fpscores to WIG
     print >> wigout, "fixedStep\tchrom=" + str(fp.interval.chromosome) + "\t start="+ str(fp.interval.startbp) +"\tstep=1"
@@ -120,8 +120,8 @@ for each in orderedbychr:
         print >> wigout, i
 
     #FDR footprints
-    fdr = percentile(np.concatenate([fp.calculate(reads,FDR=True, shoulder_sizes = args.shoulder_sizes ,footprint_sizes = args.footprint_sizes, bonferroni = args.bonferroni)[0] for i in range(args.FDR_iterations)]).tolist(),args.FDR_cutoff)
-    print fdr
+    fdr = percentile(np.concatenate([fp.calculate(reads,FDR=True, shoulder_sizes=args.shoulder_sizes ,footprint_sizes=args.footprint_sizes, bonferroni=args.bonferroni)[0] for i in range(args.FDR_iterations)]).tolist(),args.FDR_cutoff)
+#    print fdr
     if fdr < args.FDR_limit:
         for footprint in fp.footprints(withCutoff=fdr,merge=not args.dont_merge_footprints):
             print >> fdrout, footprint

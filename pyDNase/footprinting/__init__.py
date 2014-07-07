@@ -22,11 +22,11 @@ import warnings
 
 class wellington(object):
     def __init__(self, interval, reads,
-                 shoulder_sizes=range(35,36), footprint_sizes = range(11,26,2), FDR=0, bonferroni = 0,):
+                 shoulder_sizes=range(35,36), footprint_sizes=range(11,26,2), FDR=0, bonferroni=0,):
         self.interval = interval
         #The footprint scores are calculated at instantiation.
-        self.scores, self.lengths   = self.calculate(reads, shoulder_sizes,footprint_sizes,FDR, bonferroni)
-    def footprints(self, withCutoff=-30, merge = 1):
+        self.scores, self.lengths = self.calculate(reads, shoulder_sizes, footprint_sizes, FDR, bonferroni)
+    def footprints(self, withCutoff=-30, merge=1):
         """
         This returns reads GenomicIntervalSet with the intervals retrieved below the specific cutoff applied to the selected data
         """
@@ -61,7 +61,7 @@ class wellington(object):
                 rstartbp = self.interval.startbp + i[0]
                 #We must add one to the end base of the footprint to account for the BED file format
                 rendbp   = self.interval.startbp + i[1] + 1
-                region = pyDNase.GenomicInterval(self.interval.chromosome, rstartbp, rendbp, strand="+",score=i[2])
+                region = pyDNase.GenomicInterval(self.interval.chromosome, rstartbp, rendbp, label=self.interval.label, strand="+",score=i[2])
                 returnSet += region
         return returnSet
 
