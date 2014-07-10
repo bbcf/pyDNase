@@ -96,7 +96,8 @@ regions = GenomicIntervalSet(args.regions)
 reads = BAMHandler(args.reads,caching=False)
 
 #Create a directory for p-values and WIG output. This /should/ be OS independent
-os.makedirs(os.path.join(args.outputdir,"p value cutoffs"))
+pvaldir = os.path.join(args.outputdir,"p_value_cutoffs")
+os.makedirs(pvaldir)
 wigout = open(os.path.join(args.outputdir,args.output_prefix+".wig"),"w")
 fdrout = open(os.path.join(args.outputdir,args.output_prefix+".FDR.{0}.bed".format(args.FDR_cutoff)),"w")
 
@@ -134,7 +135,7 @@ for each in orderedbychr:
 
     #p-value cutoff footprints
     for fpscore in args.pv_cutoffs:
-        ofile = open(os.path.join(args.outputdir,"p value cutoffs",args.output_prefix+".{0}.bed".format(fpscore)),"a")
+        ofile = open(os.path.join(pvaldir,args.output_prefix+".{0}.bed".format(fpscore)),"a")
         for footprint in fp.footprints(withCutoff=fpscore):
             print >> ofile, footprint
         ofile.close()

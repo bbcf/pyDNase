@@ -77,7 +77,7 @@ class wellington(object):
                 next(each, None)
         return zip(*iters)
 
-    def calculate(self,reads,shoulder_sizes=range(35,36),footprint_sizes = range(11,26,2), FDR=0, bonferroni = 0):
+    def calculate(self, reads, shoulder_sizes=range(35,36), footprint_sizes=range(11,26,2), FDR=0, bonferroni = 0):
         #TODO: write docstring and doctest
 
         if self.interval.strand is "-":
